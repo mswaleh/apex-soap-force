@@ -1,0 +1,120 @@
+<apex:page controller="MetadataController" showHeader="true" sidebar="false" id="thePage" standardStylesheets="false" title="MS METADATA CREATOR">
+
+    <style>
+    .headerC {
+        font-size:1.1em;
+        text-align:center;
+        padding-top:5px;
+        padding-bottom:4px;
+        background-color:#A7C942;
+        color:#ffffff;
+    }
+
+    .tableC {
+        font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+        width:100%;
+        border-collapse:collapse;
+    }
+
+    .rowC1 {
+        color:#000000;
+        background-color:#EAF2D3;
+    }
+
+    .textC {
+        font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+        font-weight:bold;
+        font-size:1.5em;
+    }
+
+    .textS {
+        font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+        font-weight:bold-italic;
+        font-size:1em;
+    }
+    </style>
+
+  <apex:pageMessages id="errors"></apex:pageMessages>
+  
+  <apex:outputPanel id="creds">
+    <apex:outputLabel styleClass="textC">Login to your Org</apex:outputLabel>
+    <apex:form id="credsForm">
+    <apex:pageBlock >
+    <apex:pageBlockSection columns="1">
+    <apex:pageBlockSectionItem >
+      <apex:outputLabel for="uname" styleClass="textS">Username</apex:outputLabel>      
+      <apex:inputText value="{!userName}" id="uname"/>
+    </apex:pageBlockSectionItem>    
+    <apex:pageBlockSectionItem >
+      <apex:outputLabel for="pword" styleClass="textS">Password</apex:outputLabel>
+      <apex:inputSecret value="{!password}" id="pword"/>
+    </apex:pageBlockSectionItem>
+    <apex:pageBlockSectionItem >
+      <apex:outputLabel for="orgType" styleClass="textS">Org Type</apex:outputLabel>
+      <apex:selectList value="{!orgType}" id="orgType" size="1" styleClass="textS">
+        <apex:selectOption itemLabel="sandbox" itemValue="sandbox"></apex:selectOption>
+        <apex:selectOption itemLabel="production" itemValue="production"></apex:selectOption>
+      </apex:selectList>
+    </apex:pageBlockSectionItem>
+    <apex:pageBlockSectionItem >      
+      <apex:commandButton value="     Login     " action="{!login}" reRender="whatPanel,creds" status="loginStatus" styleClass="textS" accesskey="13"/>
+      <apex:actionStatus id="loginStatus" startText="logging in..." stopText="" startStyleClass="textS"></apex:actionStatus>
+    </apex:pageBlockSectionItem>    
+    </apex:pageBlockSection>
+    </apex:pageBlock>
+    </apex:form>
+    <hr/>
+  </apex:outputPanel>
+   
+  <apex:outputPanel id="whatPanel">
+  <apex:outputLabel styleClass="textC">I want to</apex:outputLabel>
+   <apex:form id="whatForm" styleClass="textS">
+   <apex:pageBlock >
+     <apex:selectList size="1" value="{!optedFor}" styleClass="textS"> 
+       <apex:selectOption itemLabel="Create Fields in existing Object" itemValue="existingObject"></apex:selectOption>
+     </apex:selectList>&nbsp;&nbsp;&nbsp;&nbsp;
+     <apex:outputLabel styleClass="textS">from</apex:outputLabel>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+       <apex:selectList size="1" value="{!usingWhat}" styleClass="textS"> 
+       <apex:selectOption itemLabel="a CSV file" itemValue="csv"></apex:selectOption>
+     </apex:selectList>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+     <br/><br/>
+     <apex:outputPanel id="objects" styleClass="textS">
+     <apex:selectList value="{!selectedObject}" size="1" styleClass="textS" id="objectList">
+         <apex:selectOptions value="{!objectsInOrg}"></apex:selectOptions>
+     </apex:selectList>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+     <apex:outputLabel value="select file" for="filePath"/>
+     <apex:inputFile value="{!csvContent}" accept="csv" fileName="{!csvName}" id="filePath" styleclass="textS"></apex:inputFile>
+     </apex:outputPanel>         
+   </apex:pageBlock>
+
+   <apex:commandButton value="Run Bhola Run" action="{!createFields}" styleClass="textS"/>
+   </apex:form>
+   <hr/>
+  </apex:outputPanel>
+  
+  <apex:outputPanel id="retrievePan">
+    <apex:outputLabel styleClass="textC">Retrieve/Deploy</apex:outputLabel>
+    <apex:form styleClass="textS">
+      <apex:pageBlock >
+        <apex:pageBlockSection >
+          <apex:selectList value="{!rdOption}" size="1" styleClass="textS">
+            <apex:selectOption itemLabel="Retrieve" itemValue="Retrieve"></apex:selectOption>
+            <apex:selectOption itemLabel="Validate Only" itemValue="Validate"></apex:selectOption>
+            <apex:selectOption itemLabel="Deploy" itemValue="Deploy"></apex:selectOption>
+          </apex:selectList>
+          <apex:inputFile fileName="{!packageFile}" value="{!packageContent}" styleClass="textS"></apex:inputFile>
+          <apex:commandButton action="{!rdValAction}" value="Go!!" styleClass="textS"/>
+          <apex:outputPanel id="actionPoller" rendered="{!showPoller}">
+            <apex:actionPoller action="{!checkStatus}" enabled="{!showPoller}" interval="5" reRender="retrievePan" status="rtStatus"/>            
+          </apex:outputPanel>
+          <apex:actionStatus id="rtStatus" startStyle="textS" startText="retrieving package components..." stopText=""></apex:actionStatus>
+          <br/>
+      <apex:outputPanel id="downloadLink">
+            <apex:outputLink rendered="{!showLink}" value="{!URLFOR('/servlet/servlet.FileDownload?file=' & docId)}" styleClass="textS">download retrieved package</apex:outputLink>
+      </apex:outputPanel>
+        </apex:pageBlockSection>
+      </apex:pageBlock>
+    </apex:form>
+  </apex:outputPanel>
+
+</apex:page>
